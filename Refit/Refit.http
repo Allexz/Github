@@ -1,6 +1,6 @@
-@Refit_HostAddress = http://localhost:5182
+@Refit_HostAddress = http://localhost:7203
 
-GET {{Refit_HostAddress}}/weatherforecast/
+GET {{Refit_HostAddress}}/api/github/user/allexz
 Accept: application/json
 
 ###
