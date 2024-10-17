@@ -1,4 +1,6 @@
 using Microsoft.Extensions.Options;
+using Newtonsoft.Json.Serialization;
+using Newtonsoft.Json;
 using Refit;
 using RefitExample.Model;
 using RefitExample.Services;
@@ -15,9 +17,16 @@ builder.Services.AddSwaggerGen();
 
 GitHubSettings settingValue = builder.Configuration.GetSection("GitHubSettings").Get<GitHubSettings>() !;
 
-builder.Services.AddRefitClient<IGitHubApi>()
-    .ConfigureHttpClient((setting, client) =>
+builder.Services.AddRefitClient<IGitHubApi>(new RefitSettings
+{
+    ContentSerializer = new NewtonsoftJsonContentSerializer(new JsonSerializerSettings
     {
+        ContractResolver = new CamelCasePropertyNamesContractResolver(),
+        NullValueHandling = NullValueHandling.Ignore
+    })
+}) .ConfigureHttpClient((setting, client) =>
+    {
+        
         GitHubSettings? settings = setting
         .GetRequiredService<IOptions<GitHubSettings>>()
         .Value;
