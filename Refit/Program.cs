@@ -15,6 +15,7 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+/// Implementacao com REFIT
 GitHubSettings settingValue = builder.Configuration.GetSection("GitHubSettings").Get<GitHubSettings>() !;
 
 builder.Services.AddRefitClient<IGitHubApi>(new RefitSettings
@@ -26,10 +27,7 @@ builder.Services.AddRefitClient<IGitHubApi>(new RefitSettings
     })
 }) .ConfigureHttpClient((setting, client) =>
     {
-        
-        GitHubSettings? settings = setting
-        .GetRequiredService<IOptions<GitHubSettings>>()
-        .Value;
+        GitHubSettings? settings = setting.GetRequiredService<IOptions<GitHubSettings>>().Value;
 
         client.BaseAddress = new Uri(settingValue.BaseAddress);
         client.DefaultRequestHeaders.UserAgent.ParseAdd(settingValue.AppName);
@@ -38,6 +36,21 @@ builder.Services.AddRefitClient<IGitHubApi>(new RefitSettings
         client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/vnd.github.v3+json"));
 
     });
+
+// Implementacao com ADDHTTPCLIENT
+EndpointOptions endPointOptions = new();
+builder.Services.Configure<EndpointOptions>(builder.Configuration.GetSection("HabilidadeOptions"));
+builder.Configuration.GetSection("HabilidadeOptions").Bind(endPointOptions);
+
+builder.Services.AddHttpClient("Habilidades", httpClient =>
+{
+    httpClient.BaseAddress = new Uri(endPointOptions.BaseAddress);
+    httpClient.Timeout = endPointOptions.TimeOut;
+    httpClient.DefaultRequestHeaders.UserAgent.ParseAdd(settingValue.AppName);
+    httpClient.DefaultRequestHeaders.Add("Authorization", settingValue.AccessToken);
+    httpClient.DefaultRequestHeaders.Add("X-GitHub-Api-Version", settingValue.GitHubHeader);
+    httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/vnd.github.v3+json"));
+});
 
 var app = builder.Build();
 
